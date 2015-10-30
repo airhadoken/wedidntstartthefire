@@ -1,0 +1,19 @@
+{
+    
+    "TWITTER_NOTES": "The values below are retrieved from Twitter's API app interface.  When you create a Twitter API app, you will",
+    "TWITTER_NOTES": " receive the consumer key and consumer secret as part of the app.  You will need to separately",
+    "TWITTER_NOTES": " create the access token, which will give you the values for access_token and access_token_secret.",
+    "TWITTER_NOTES": " Paste the values for each of these inside the quotes below, next to the corresponding key.",
+
+    "consumer_key": "",
+    "consumer_secret": "",
+    "access_token": "",
+    "access_token_secret": "",
+
+    "MONGODB_NOTES": "Post here the url with username and password as required to connect to your trends database",
+    "MONGODB_NOTES": "The collection deals with only one type of object, and it will always retrieve every object in ",
+    "MONGODB_NOTES": " the collection.  If mongodb_url is left empty, the app will not work.",
+
+    "mongodb_url": "",
+    "mongodb_collection": "trends",
+}

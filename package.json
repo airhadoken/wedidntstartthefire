@@ -1,0 +1,19 @@
+{
+  "name": "wedidntstart",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "version": "1.1.0",
+  "engines": {
+    "node": "0.10.x"
+  },
+  "dependencies": {
+    "express": "*",
+    "mongodb": ">=3.0",
+    "number-to-words": "*",
+    "q": "^1.4.1",
+    "rita": "*",
+    "twit": "^2.1.1"
+  }
+}
