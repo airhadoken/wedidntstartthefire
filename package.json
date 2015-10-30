@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "express": "*",
-    "mongodb": ">=3.0",
+    "mongodb": "*",
     "number-to-words": "*",
     "q": "^1.4.1",
     "rita": "*",
