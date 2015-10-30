@@ -80,8 +80,9 @@ function worddb(maxlength) {
   //  matches each element in the spec array by the properties in the objects of spec.
   function sublistByProperty(arr, spec) {
 
-    spec = spec.slice(0);
-    var sublist = [];
+    spec = spec.slice(0),
+    speccount = spec.length;
+    var sublist = new Array(speccount);
     arr.forEach(function(arrayel) {
       var success = false;
       if(arrayel.used) {
@@ -90,7 +91,7 @@ function worddb(maxlength) {
       if(spec.length < 1)
         return false; // already done
       spec.forEach(function(specel, i) {
-        if(success)
+        if(success || !specel)
           return;
         if(Object.keys(specel).reduce(function(current, spkey) {
           if(typeof specel[spkey] === "function") {
@@ -100,15 +101,14 @@ function worddb(maxlength) {
           }
         }, true)) {
           // spec matched.  Remove it and mark success
-          spec.splice(i, 1);
+          delete spec[i];
+          speccount --;
           success = true;
+          sublist[i] = arrayel;
         }
       });
-      if(success) {
-        sublist.push(arrayel);
-      }
     });
-    if(spec.length < 1) {
+    if(speccount < 1) {
       return sublist;
     } else {
       return null;
@@ -378,15 +378,21 @@ trends.push("2012 Benghazi attack","ABC Family","AR-MO Metropolitan Statistical 
 */
 var db = new worddb();
 db.loadFromMongo().then(function(db) {
-  return db.getNewTrends();
+ return db.getNewTrends();
 }).then(function(db) {
   var arhymes = zip(
     db.nonEmptyBuckets(["2", "3", "4"]), 
-    db.nonEmptyBuckets(["2", "3", "4", "6", "7", "off3", "off4", "off6"]));
+    db.nonEmptyBuckets(["2", "3", "4", "6", "7", "off3", "off4", "off6"])
+  );
+  var brhymes = zip(
+    db.nonEmptyBuckets(["2", "3", "4"]), 
+    db.nonEmptyBuckets(["2", "3", "4", "6", "7", "off3", "off4", "off5"])
+  );
   var _word, aline, alinestr, bline, blinestr;
 
-  if(db.nonEmptyBuckets(["7"]).length) {
+  if(db.nonEmptyBuckets(["7"]).length > 1) {
     arhymes = arhymes.concat([["7", "7"]]);
+    brhymes = brhymes.concat([["7", "7"]]);
   }
   var rhyme_candidates = db.getAllRhymes(arhymes);
 
@@ -403,6 +409,23 @@ db.loadFromMongo().then(function(db) {
     return Q.reject({stack: "No rhyme was found for A-pattern"});
   }
   db.markused.apply(db, aline.result);
+
+  // now get a rhyme for line B
+  rhyme_candidates = db.getAllRhymes(brhymes);
+
+  keys = Object.keys(rhyme_candidates).sort(function(a, b) {
+    return a.length === b.length ? 0 : (a.length < b.length ? 1 : -1);
+  });
+
+  if(!keys.length) {
+    return Q.reject("No rhyming words were found for line B");
+  }
+
+  bline = rhyme_candidates[keys.shift()].pluck();
+  if(!bline) {
+    return Q.reject({stack: "No rhyme was found for B-pattern"});
+  }
+  db.markused.apply(db, bline.result);
 
   if(~["2", "3", "4", "off3", "off4"].indexOf(aline.key[1])) {
     _word = db.getWord(db.nonEmptyBuckets(["2", "3", "4"]).pluck());
@@ -425,14 +448,6 @@ db.loadFromMongo().then(function(db) {
           + (next.off ? "and " : "")
           + next.word;
   }, "");
-
-
-  bline = rhyme_candidates[keys.shift()].pluck();
-  if(!bline) {
-    return Q.reject({stack: "No rhyme was found for B-pattern"});
-  }
-  db.markused.apply(db, bline.result);
-
   if(~["2", "3", "4", "off3"].indexOf(bline.key[1])) {
     _word = db.getWord(db.nonEmptyBuckets(["1", "2", "3", "4"]).pluck());
     if(!_word) {
@@ -476,7 +491,7 @@ db.loadFromMongo().then(function(db) {
   console.error(e.stack || e);
   db.rebuildcache();
 }).finally(function() {
-  db.saveToMongo()
+  db.saveToMongo();
 });
 
 // trends.forEach(function(trend) {
