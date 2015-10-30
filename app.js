@@ -276,8 +276,8 @@ function worddb(maxlength) {
         resp.on("end", function() {
           try {
             var json = JSON.parse(body);
-            json.trendsByDateList.map(function(trenddate) { 
-              trenddate.trendsList.forEach(function(trend) { 
+            json.trendsByDateList.map(function(trenddate) {
+              trenddate.trendsList.forEach(function(trend) {
                 var newtrend = that.add(trend.title);
                 if(newtrend) { // falsy if it's not new.
                   newtrend.isNew = true;
@@ -394,6 +394,10 @@ db.loadFromMongo().then(function(db) {
     return a.length === b.length ? 0 : (a.length < b.length ? 1 : -1);
   });
 
+  if(!keys.length) {
+    return Q.reject("No rhyming words were found at all");
+  }
+
   aline = rhyme_candidates[keys.shift()].pluck();
   if(!aline) {
     return Q.reject({stack: "No rhyme was found for A-pattern"});
@@ -424,19 +428,31 @@ db.loadFromMongo().then(function(db) {
 
 
   bline = rhyme_candidates[keys.shift()].pluck();
-  if(!aline) {
-    return Q.reject({stack: "No rhyme was found for A-pattern"});
+  if(!bline) {
+    return Q.reject({stack: "No rhyme was found for B-pattern"});
   }
   db.markused.apply(db, bline.result);
 
   if(~["2", "3", "4", "off3"].indexOf(bline.key[1])) {
-    bline.result.splice(1, 0, db.getWord(db.nonEmptyBuckets(["2", "3", "4"]).pluck()));
+    _word = db.getWord(db.nonEmptyBuckets(["1", "2", "3", "4"]).pluck());
+    if(!_word) {
+      return Q.reject({stack : "Could not find a word to push into X2 position, line B"});
+    }
+    bline.result.splice(1, 0, _word);
+    db.markused(_word);
+    if(bline.result[1].syllcount === 1) {
+      _word = db.getWord("1");
+      bline.result.splice(1, 0, _word);
+      db.markused(_word);
+    }
   } 
   if(~["2", "3", "4"].indexOf(bline.key[0])) {
-    bline.result.unshift(db.getWord(db.nonEmptyBuckets(["1", "2", "3", "4"]).pluck()));
-    if(bline.result[0].syllcount === 1) {
-      bline.result.unshift(db.getWord("1"));
+    _word = db.getWord(db.nonEmptyBuckets(["2", "3", "4"]).pluck());
+    if(!_word) {
+      return Q.reject({stack : "Could not find a word to push into X1 position, line B"});
     }
+    bline.result.unshift(_word);
+    db.markused(_word);
   } 
   blinestr = bline.result.reduce(function(curr, next, i) { 
     return (i ? curr + ", " : "") 
@@ -457,8 +473,8 @@ db.loadFromMongo().then(function(db) {
 }).then(function() {
   console.log("save success.  finish process");
 }, function(e) {
+  console.error(e.stack || e);
   db.rebuildcache();
-  console.error(e.stack);
 }).finally(function() {
   db.saveToMongo()
 });
