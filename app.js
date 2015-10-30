@@ -186,7 +186,11 @@ function worddb(maxlength) {
     rhymecache = {};
     syllcache = {};
     wordrl = {};
-    words.forEach(indexword);
+    words.forEach(function(word) {
+      if(!wordrl[word.word]) {
+        indexword(word);
+      }
+    });
   };
 
   this.getAllRhymes = function(patterns) {
@@ -425,7 +429,7 @@ db.loadFromMongo().then(function(db) {
   }
   db.markused.apply(db, bline.result);
 
-  if(~["2", "3", "4", "off3", "off6"].indexOf(bline.key[1])) {
+  if(~["2", "3", "4", "off3"].indexOf(bline.key[1])) {
     bline.result.splice(1, 0, db.getWord(db.nonEmptyBuckets(["2", "3", "4"]).pluck()));
   } 
   if(~["2", "3", "4"].indexOf(bline.key[0])) {
@@ -447,19 +451,17 @@ db.loadFromMongo().then(function(db) {
     access_token_secret: config.access_token_secret
   });
 
-  return Q.all([
-    Q.nfcall(T.post.bind(T), 'statuses/update', { status: alinestr + "\n" + blinestr }).then(function(reply) {
+  return Q.nfcall(T.post.bind(T), 'statuses/update', { status: alinestr + "\n" + blinestr }).then(function(reply) {
       console.log("reply: ", reply);    
-    }),
-    db.saveToMongo()
-  ]);
+    });
 }).then(function() {
   console.log("save success.  finish process");
 }, function(e) {
+  db.rebuildcache();
   console.error(e.stack);
+}).finally(function() {
+  db.saveToMongo()
 });
-return;
-
 
 // trends.forEach(function(trend) {
 //   db.add(trend);
