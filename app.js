@@ -280,7 +280,6 @@ function worddb(maxlength) {
                 }
               });
             });
-            console.log("trend retrieval success, resolving", that);
             deferred.resolve(that);
           } catch(e) {
             console.error(e.stack);
@@ -304,7 +303,7 @@ function worddb(maxlength) {
       return isNew;
     });
 
-    if(!wordslist.length) {
+    if(!wordslist.length && !dirty.length) {
       return Q(this);
     }
     var mongodb;
@@ -321,10 +320,11 @@ function worddb(maxlength) {
           wordslist);
       }
       if(dirty.length) {
-        upd_dfd = Q.nfcall(mongodb.updateMany(
-          {_id: dirty.map(function(arg) { return arg._id; })},
+        upd_dfd = Q.nfcall(
+          collection.updateMany.bind(collection),
+          {_id: { $in : dirty.map(function(arg) { return arg._id; })}},
           {$set : { used: true }}
-        )).then(function() {
+        ).then(function() {
           dirty = [];
         });
       }
@@ -449,7 +449,7 @@ db.loadFromMongo().then(function(db) {
 
   return Q.all([
     Q.nfcall(T.post.bind(T), 'statuses/update', { status: alinestr + "\n" + blinestr }).then(function(reply) {
-      console.log("reply: " + reply);    
+      console.log("reply: ", reply);    
     }),
     db.saveToMongo()
   ]);
