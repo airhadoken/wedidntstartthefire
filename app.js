@@ -48,10 +48,10 @@ function makespeakable(phrase) {
     return say_letter[match.toUpperCase()];
   })
   .replace(/[0-9]+ (st|nd|rd|th)\b/g, function(match) {
-    return n2w.toOrdinalWords(parseInt(match));
+    return n2w.toOrdinalWords(parseInt(match)).replace(/[-,]/g, " ");
   })
   .replace(/[0-9]+/g, function(match) {
-    return n2w.toWords(match);
+    return n2w.toWords(match).replace(/[-,]/g, " ");
   });
 }
 
