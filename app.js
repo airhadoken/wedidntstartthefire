@@ -255,6 +255,9 @@ function worddb(maxlength) {
     }
   };
 
+  // Get a random unused word from a particular bucket.
+  // (Buckets are, e.g. "3" for three syllable words, or "off3" for three syllable words with the
+  //   first syllable unstressed)
   this.getWord = function(bucket) {
     var cache = syllcache[bucket].filter(function(word) {
       return !word.used;
@@ -262,6 +265,8 @@ function worddb(maxlength) {
     return cache[Math.floor(Math.random() * cache.length)];
   };
 
+  // Filter a the buckets matching the spec (array of bucket names) for those which have
+  //  at least one unused word
   this.nonEmptyBuckets = function(bucketspec) {
     return bucketspec.filter(function(bucket) {
       return ~Object.keys(syllcache).indexOf(bucket) &&
@@ -271,6 +276,8 @@ function worddb(maxlength) {
     });
   };
 
+  // Mark any number of words as used, and put them on the dirty pile
+  //  to update later in the Mongo store.
   this.markused = function() {
     var mongodb, that = this,
         args = [].slice.call(arguments, 0);
@@ -283,6 +290,9 @@ function worddb(maxlength) {
     return this;
   };
 
+  // Get all previously found and processed words from MongoDB.
+  // This includes the used ones, since we want to know which ones
+  //  not to reindex from trends.
   this.loadFromMongo = function() {
     var that = this, mongodb;
     return Q.nfcall(MongoClient.connect, config.mongodb_url).then(function(db) {
@@ -299,6 +309,8 @@ function worddb(maxlength) {
     });
 };
 
+  // Get new trends from Google Trends and make each one into
+  //  a processed and indexed word.
   this.getNewTrends = function() {
     var that = this;
     var url = "https://www.google.com/trends/hottrends/hotItems?ajax=1&pn=p1&htv=l";
@@ -334,6 +346,10 @@ function worddb(maxlength) {
     });
   };
 
+  // Make the following updates to the Mongo store:
+  // Words older than 30 days are deleted, saving space and leaving them up for reuse if they trend later.
+  // New words from trends are inserted into the collection.
+  // Words from the dirty pile are marked as used and updated in the collection.
   this.saveToMongo = function() {
     var that = this;
     var wordslist = words.filter(function(word) {
