@@ -195,6 +195,10 @@ function worddb(maxlength) {
 
   this.getAllRhymes = function(patterns) {
     try {
+      console.log(Object.keys(rhymecache).map(function(key) {
+        return key + ": " + rhymecache[key].filter(function(k) { return !k.used; }).map(function(k) { return k.word}).join(", ");
+      }).join("\n"));
+
       return Object.keys(rhymecache).reduce(function(current, rhymekey) {
 
         var rhymewords = rhymecache[rhymekey];
@@ -287,7 +291,6 @@ function worddb(maxlength) {
             deferred.resolve(that);
           } catch(e) {
             console.error(e.stack);
-            //console.log("characters 0-10:", body.substr(0, 10));
             deferred.reject(e);
           }
         });
@@ -362,20 +365,18 @@ function pluck(arr, query) {
   }
 }
 Array.prototype.pluck = function(query) { return pluck(this, query); };
-/*
-var trends = {"trends":[{"name":"#Empire","query":"%23Empire","url":"http:\/\/twitter.com\/search?q=%23Empire","promoted_content":null},{"name":"#BB17","query":"%23BB17","url":"http:\/\/twitter.com\/search?q=%23BB17","promoted_content":null},{"name":"#CatHistory","query":"%23CatHistory","url":"http:\/\/twitter.com\/search?q=%23CatHistory","promoted_content":null},{"name":"#MTVFanWars5SOSFam","query":"%23MTVFanWars5SOSFam","url":"http:\/\/twitter.com\/search?q=%23MTVFanWars5SOSFam","promoted_content":null},{"name":"#blackish","query":"%23blackish","url":"http:\/\/twitter.com\/search?q=%23blackish","promoted_content":null},{"name":"Petey Pablo","query":"%22Petey+Pablo%22","url":"http:\/\/twitter.com\/search?q=%22Petey+Pablo%22","promoted_content":null},{"name":"Deray","query":"Deray","url":"http:\/\/twitter.com\/search?q=Deray","promoted_content":null},{"name":"Jason Richardson","query":"%22Jason+Richardson%22","url":"http:\/\/twitter.com\/search?q=%22Jason+Richardson%22","promoted_content":null},{"name":"Ride Along 2","query":"%22Ride+Along+2%22","url":"http:\/\/twitter.com\/search?q=%22Ride+Along+2%22","promoted_content":null},{"name":"Papelbon","query":"Papelbon","url":"http:\/\/twitter.com\/search?q=Papelbon","promoted_content":null}],"as_of":"2015-09-24T04:15:10Z","created_at":"2015-09-24T04:08:55Z","locations":[{"name":"United States","woeid":23424977}]}
-trends = trends.trends;
-trends = trends.map(function(trend) {
-  var name = trend.name;
-  name = name.replace(/#/g, "");
-  name = name.replace(/([a-z0-9])(?=[A-Z])|([A-Z])(?=[A-Z][a-z])|([A-Za-z])(?=[0-9])/g, "$1$2$3#").split("#").join(" ");
-  return name;
-});
-//console.log(trends);
-trends.push("stupid shit", "nevermore", "9 eleven", "fuck the poor", "edward snowden", "bulldogs");
-trends.push("larry wilmore", "trevor noah", "kim kardashian", "NSA", "tinder", "trans pacific partnership");
-trends.push("2012 Benghazi attack","ABC Family","AR-MO Metropolitan Statistical Area","Aaron Rodgers","Abuja","Aceh","Activision","Adolescence","Adrian Peterson","Adrien Broner","Agilent Technologies","Aishwarya Rai Bachchan","Alfred Dunhill Links Championship","Alibaba Group","Amber Rose","American Apparel","American Hockey League","American Horror Story","American League","American League West","Andrew Luck","Android","Andy Roddick","Angela Merkel","Anthony Lozano","Apple Inc.","Arizona Diamondbacks","Arkansas","Arsenal F.C.","Arsène Wenger","Assassin's Creed","Assassins","Asthma","Aston Villa F.C.","Atlético Madrid","Australia","Auto show","BP","Bab-el-Mandeb","Baghdad","Baker Hughes","Baltimore Orioles","Banda Aceh","Barack Obama","Bayer 04 Leverkusen","Benton County","Berkeley","Bernd Leno","Beyoncé","Blackbeard","Blake Shelton","Blase J. Cupich","Boko Haram","Bologna F.C. 1909","Book","Boston Bruins","Boston Red Sox","Bound For Glory","Boxing","Brandon Mebane","Breast cancer","Brendan Gleeson","Brigham Young University","Brooklyn Decker","Buffalo","Buffalo Bills","Buffalo Sabres","Buffy Summers","Buffy the Vampire Slayer","Bureau of Alcohol","CNN","CONCACAF","CONCACAF Gold Cup","Cairo University","Caitlyn Jenner","California","California Department of Transportation","Cancer","Cannabis","Cargo planes bomb plot","Caron Butler","Carrie Mathison","Casino","Censorship","Chad Marshall","Charles Johnson","Charlotte Hornets","Chasing Life","Chevrolet Colorado","Chicago","Chicago Bears","Chicago Bulls","Chicago Cubs","China","Chris Bosh","Chris Davis","Cincinnati Reds","Clayton Kershaw","Cleveland Browns","Coachella Valley","College","Colorado Rapids","Colorado Rockies","Connecticut","Contract","Convention on the Rights of the Child","Crime","Cristiano Ronaldo","Daimler AG","Dako","Dallas Cowboys","Dallas Keuchel","Damon Lindelof","David Ferrer","David Texeira","Death","Deepwater Horizon oil spill","Demi Lovato","Denver Broncos","Derrick Rose","Des Plaines","Detroit Lions","Detroit Tigers","Dianna Duran","Don Orsillo","Donald Trump","Dover","Drake","Drew Brees","Driving","Dunkin' Donuts","East Asia","Eastern span replacement of the San Francisco–Oakland Bay Bridge","Economy","Education","Ellen DeGeneres","Ellen Page","Elon Musk","Emilie de Ravin","England","England national football team","Essex","FC Dallas","Fashion","Fayetteville-Springdale-Rogers","Federal Bureau of Investigation","Federal Reserve System","Feliciano López","Fiat Chrysler Automobiles","Fire","Fire Prevention Week","Firearms and Explosives","Food and Drug Administration","Ford Motor Company","France Ligue 1","François Hollande","Freeheld","French Riviera","Gambling","Games","General Mills","George H. W. Bush","George W. Bush","Georgia","Germany","Glencore Xstrata","Golden Tate","Golf","Google","Google Nexus","Gordon Hayward","Governor of California","Green Bay Packers","Green Zone","Guatemala","Guatemala City","Guillermo García-López","Haider al-Abadi","Harrisburg","Hector Balderas","Hernia","Hillary Rodham Clinton","Homeland","Honduras","Houston Astros","Houston Dynamo","Houthis","Hugh Jackman","Humble Bundle","Immigration","India","Indiana Fever","Indianapolis Colts","Indonesia","Injury","Intel","Inter Milan","Iraq","Islamic State of Iraq and the Levant","Italia Ricci","J. Whyatt Mondesire","Jack Dorsey","Jack Grealish","Jack Ma","Jacksonville Jaguars","Jake Arrieta","Jarius Wright","Jay Cutler","Jazbaa","Jeb Bush","Jennifer Aniston","Jeremy Affeldt","Jeremy Irons","Jerry Brown","Jihadism","Jimmy Fallon","Joachim Löw","Joaquín Guzmán","John Deere","Jonas Gustavsson","Jonesborough","Julianna Margulies","Julianne Moore","Just Kids","Justin Theroux","Juventus F.C.","Jürgen Klinsmann","Kanye West","Kapil Sharma","Kate Winslet","Keeping Up with the Kardashians","Kevin Faulconer","Kevin McCarthy","Khabib Allakhverdiev","Khloé Kardashian","Kim Kardashian","Kobe Bryant","Kourtney Kardashian","Kris Jenner","Kyrgyzstan","LA Galaxy","LG Corp","Lady Gaga","Laurel Hester","Leia Organa","Leonardo DiCaprio","Libya","Longs Peak","Los Angeles Angels of Anaheim","Los Angeles Dodgers","Los Angeles Lakers","Luke Mulholland","Lung cancer","Lyndon B. Johnson","Macau","Mahatma Gandhi","Malta","Manchester United F.C.","Marco Bueno","Mars","Marshawn Lynch","Massimiliano Allegri","McKeesport","Media","Mental Illness Awareness Week","Mental disorder","Mental health","Mercedes-Benz","Mercedes-Benz Actros","Merck & Co.","Mexico","Mexico national football team","Miami Dolphins","Miami Heat","Michael Fassbender","Microsoft Corporation","Miguel Cabrera","Miley Cyrus","Military","Milwaukee Brewers","Minnesota Lynx","Minnesota Vikings","Miranda Lambert","Mix Diskerud","Moldova","Monday Night Football","Montana","Morocco","NASCAR","NBA","NBA All-Star Game","NFL","NPR","NYSE","Nancy Pelosi","Narendra Modi","National Association for the Advancement of Colored People","National Hockey League","New Mexico","New Orleans","New Orleans Saints","New York Giants","New York Jets","New York Yankees","News","Nicholas Brendon","Nick Kyrgios","Nicotine","Nigeria","Nobel Prize","North Carolina","North Korea","Novak Djokovic","Nudity","OPEC","OVO Sound","Oakland Raiders","Obesity","Ohio","Olympiacos F.C.","Olympic Games","Olympique de Marseille","Omar Gonzalez","Once Upon a Time","Oregon","PAOK FC","PARTYNEXTDOOR","Painting","Palmyra","Pan","Paris","Paris Fashion Week","Paris Saint-Germain F.C.","Patreon","Patrick J. Kennedy","Patti Smith","Pennsylvania","Petroleum","Pharmaceutical drug","Philadelphia","Philadelphia Eagles","Pittsburgh Pirates","Porsche","Portugal","Rafael Nadal","Ralph Wilson","Real Madrid C.F.","Real Salt Lake","Red Sea","Regan Smith","Republican Party","Reserve Bank of India","Riyadh","Robert Mapplethorpe","Roberto Mancini","Robinson Canó","Rocky Mountain National Park","Roger Goodell","Roman Catholic Archdiocese of Chicago","Roseburg","Roy Hodgson","Russia","Ryan O'Reilly","Sam Smith","Samsung Galaxy","Samsung Galaxy Note series","Samsung Galaxy S6","San Diego","San Diego Chargers","San Diego Padres","San Francisco 49ers","San Francisco Giants","San Francisco–Oakland Bay Bridge","Santa Catarina Pinula","Saturday Night Live","Saudi Arabia","School","Scott Disick","Seattle Mariners","Seattle Seahawks","Seattle Sounders FC","Sebastian Janikowski","Serie A","Sharia","Sheldon Richardson","Shenzhen Open","Silicosis","Singapore","Siri","Skateboarding","SlutWalk","Snohomish","Somalia","South Africa","South Africa national cricket team","South China","South Dakota","South Korea","Spain","Sri Lanka","Star Wars","Star Wars Episode VI: Return of the Jedi","Star Wars: Battlefront","Starling Marte","Startup company","Steve Jobs","Stunted growth","Surgery","Susan G. Komen for the Cure","Syria","Tamika Catchings","Ted Kennedy","Tennessee","Tennessee Bureau of Investigation","Tennis","Texas Rangers","The Affair","The Church of Jesus Christ of Latter-day Saints","The Good Wife","The Great British Bake Off","The Leftovers","The Walking Dead","Thorbjørn Olesen","Tim Sherwood","Tobacco","Tomáš Berdych","Tony Hawk","Total Nonstop Action Wrestling","Toyota","Toyota Tacoma","Trans-Pacific Partnership","Troy Newman","Tunisia","Tuukka Rask","Twenty20","Twitter","U.C. Sampdoria","UEFA Euro 2016","Ukraine","Umpqua Community College","United Automobile Workers","United Nations","United States Congress","United States House of Representatives","United States men's national soccer team","United States of America","University of California","Utah Jazz","Violence","Vladimir Putin","Volkswagen Passenger Cars","WNBA Finals","Washington","Washington Redskins","Weight loss","West Hartford","West Virginia","Will Tye","William Shakespeare","Wiz Khalifa","Women's National Basketball Association","World Bank","Wynn Las Vegas","Wynn Resorts","Xfinity Series","Yemen","Youth","Zlatan Ibrahimović");
-*/
+
+// Zip permutes two arrays, so for elements a in array A and b in array B,
+//  the returned array will contain the array [a,b] as an element.
+function zip(arr, brr) {
+  return [].concat.apply([], arr.map(function(a) {
+    return brr.map(function(b) {
+      return [a, b];
+    });
+  }));
+}
+
+//  Non-setuppy code starts here.
 var db = new worddb();
 db.loadFromMongo().then(function(db) {
  return db.getNewTrends();
@@ -519,6 +520,12 @@ function makerhymekey(phrase) {
 
 return;
 
+//  Some notes about the rhythmic structure of We Didn't Start the Fire:
+//  The constructor for lyrics above doesn't perfectly match this,
+//   because most of the original song uses 1010... stress patterns,
+//   and we're only accounting for whether the first syllable is stressed (not "off")
+//   or not stressed ("off").
+
 // Here's what we can do, syllable-wise:
 //  The two lines of the couplet are different.  Here's line A possibilities:
 //  2, 2, 3, 6   <-- too specialized, don't worry about this one
@@ -538,24 +545,6 @@ return;
 //  4, 4,    7
 //  7,       7
 
-function weighted_random() {
-  var args = Array.prototype.slice.call(arguments, 0),
-  weights = args.filter(function(arg, i) {
-    return i % 2;
-  }),
-  measures = args.filter(function(arg, i) {
-    return i % 2 - 1;
-  }),
-  total_weight = weights.reduce(function(a, b) { return a + b; }, 0),
-  candidate = Math.floor(Math.random() * total_weight);
-
-  while(candidate >= weights[0]) {
-    candidate -= weights.shift();
-    measures.shift();
-  }
-  return measures[0];
-}
-
 // Line A is ({(2,2), (2,3), (3,2), (3,3), (4,2), (4,3), (4,4)}, {(4,2}, (3,3), (4,4), (3,4), (4,3), 6, 7})
 // or (7, 7)
 
@@ -565,13 +554,6 @@ function weighted_random() {
 // we'll call unrhyming words X1 and X2
 // for A1 if A1 is in [2,3,4] pluck X1 from [2,3,4] -- if A1 is in [7] X1 is nothing.
 // for A2 if A2 is in [2,3,4,off3] pick X2 from [2,3,4]. if A2 in [off5,6,7] X2 is nothing.
-function zip(arr, brr) {
-  return [].concat.apply([], arr.map(function(a) {
-    return brr.map(function(b) {
-      return [a, b];
-    });
-  }));
-}
 
   // And line B
   // 2, 2, 3, 2
