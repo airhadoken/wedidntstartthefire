@@ -38,6 +38,13 @@ var say_letter = {
   Z: "zee"
 };
 
+//  Given a word or prhase,  produce something that RiTa will
+//  interpret as the way that phrase would be spoken.
+//  * RiTa doesn't care much for punctuation. Remove it.
+//  * A string of all caps is assumed to be spoken as a series of letters. Right for NFL, wrong for NASCAR.
+//  * Words made of both letters and digits are split apart into chunks of contiguous letters & contiguous numbers. 
+//  * Single letters get replaced by their speaking equivalent (in the say_letter object above)
+//  * Numbers get replaced with their proper ordinal or cardinal pronunciation.
 function makespeakable(phrase) {
   phrase = phrase.replace(/['"]/g, "");
   phrase = phrase.replace(/[-+]/g, " ");
@@ -47,7 +54,7 @@ function makespeakable(phrase) {
   return phrase.replace(/\b[A-Z](?=[[:space:][:punct:]])/g, function(match) {
     return say_letter[match.toUpperCase()];
   })
-  .replace(/[0-9]+ (st|nd|rd|th)\b/g, function(match) {
+  .replace(/[0-9]+ ?(st|nd|rd|th)\b/g, function(match) {
     return n2w.toOrdinalWords(parseInt(match)).replace(/[-,]/g, " ");
   })
   .replace(/[0-9]+/g, function(match) {
@@ -64,6 +71,10 @@ function worddb(maxlength) {
   var dirty = [];
   maxlength = maxlength || 8;
 
+  // Add a fully parsed word object to the various caches:
+  //  * wordrl, the word reverse-lookup "Master list" that indicates if a word has been indexed
+  //  * Syllable cache based on whether the word is "off" (non-stressed first syllable) and syllable count;
+  //  * Rhyme cache for each prefix of the rhyme key (the key is in reverse order, thus prefixes rather than suffixes)
   function indexword(word) {
     wordrl[word.word.toLowerCase()] = (wordrl[word.word.toLowerCase()] || 0) + 1;
     word.rhymekey.forEach(function(key, i) {
@@ -78,6 +89,8 @@ function worddb(maxlength) {
 
   // Returns an array if at least one element in the source array
   //  matches each element in the spec array by the properties in the objects of spec.
+  // [This array contains one matching source element for each element in the spec.]
+  // Otherwise returns null.
   function sublistByProperty(arr, spec) {
 
     spec = spec.slice(0),
@@ -115,6 +128,11 @@ function worddb(maxlength) {
     }
   }
 
+  // Uses the syllable buckets to sublistByProperty against the following spec for each bucket:
+  // * off and syllcount properties match;
+  // * The candidate does not share a whole final word with any existing candidate.
+  //     Thus, sublistbybuckets([...], ["4", "5"]) would not return ["Steelers football", "Patriots football"]
+  //     but would return ["Steelers football", "Rubio pratfall"]
   function sublistByBuckets(arr, buckets) {
     return sublistByProperty(arr, buckets.map(function(syll) {
       var result = {
@@ -140,6 +158,8 @@ function worddb(maxlength) {
     }));
   }
 
+  //  Process a word into a "word" object that contains all of the needed indexing properties,
+  //   then kick off indexing if the word is not alredy in the caches.
   this.add = function(word) {
     var processedword, speakable, rs, syllables;
     if(wordrl[(word.word || word).toLowerCase()]) {
@@ -152,15 +172,24 @@ function worddb(maxlength) {
       syllables = Rita.RiTa.getSyllables(speakable).split(/[\/ ]/).reverse();
       rs = rs.replace(/[^01]/g, ""); 
 
-
       processedword = {
+        // the word itself
         word: word,
+        // When this word object was first created from a string (b/c we keep 30 days of records)
         timestamp: Date.now(),
+        // Has this word been used in a Tweet?
         used: false,
+        // How does RiTa need to see the word to parse it correctly
         speak: speakable,
+        // Number of syllables 
         syllcount: rs.length,
+        // Is the first syllable unstressed?
         off: rs[0] === "0",
+        // What are the syllables of the word
         syllables: syllables,
+        // The keys to matching the word with other rhyming words, meaning:
+        //  * all syllables up to and including the last stressed one, starting from the end,
+        //  * with initial consonsant sounds chopped off.
         rhymekey: syllables.slice(
                     0, 
                     ~rs.lastIndexOf("1") ? (rs.length - rs.lastIndexOf("1")) : rs.length
@@ -168,6 +197,7 @@ function worddb(maxlength) {
                     return syll.replace(/^[^aeiou]*/, "");
                   })
       };
+      // Words that are too short or too long do not get indexed.
       if(rs.length < 1 || rs.length > maxlength) {
         return;
       }
@@ -182,6 +212,7 @@ function worddb(maxlength) {
     return processedword;
   };
 
+  // Invalidate the caches and reindex all known words.
   this.rebuildcache = function() {
     rhymecache = {};
     syllcache = {};
@@ -193,6 +224,7 @@ function worddb(maxlength) {
     });
   };
 
+  // Using the list of all rhythmic patterns supplied, find a rhyming pattern for each.
   this.getAllRhymes = function(patterns) {
     try {
       console.log(Object.keys(rhymecache).map(function(key) {
@@ -347,6 +379,9 @@ function worddb(maxlength) {
 
 } 
 
+// Randomly select, remove, and return an element from an array,
+//  optionally limiting the candidates to those satisfying a query object 
+//  containing one or more keys which must match exactly.
 function pluck(arr, query) {
   var candidates, cand;
   if(query) {
