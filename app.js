@@ -480,7 +480,9 @@ db.loadFromMongo().then(function(db) {
   db.markused.apply(db, bline.result);
 
   if(~["2", "3", "4", "off3", "off4"].indexOf(aline.key[1])) {
-    _word = db.getWord(db.nonEmptyBuckets(["2", "3", "4"]).pluck());
+    _word = db.getWord(db.nonEmptyBuckets(
+      ~aline.key[1].indexOf("off") ? ["2", "3"] : ["2", "3", "4"]
+    ).pluck());
     if(!_word) {
       return Q.reject({stack : "Could not find a word to push into X2 position, line A"});
     }
@@ -501,7 +503,9 @@ db.loadFromMongo().then(function(db) {
           + next.word;
   }, "");
   if(~["2", "3", "4", "off3"].indexOf(bline.key[1])) {
-    _word = db.getWord(db.nonEmptyBuckets(["1", "2", "3", "4"]).pluck());
+    _word = db.getWord(db.nonEmptyBuckets(
+      bline.key[1] === "off3" ? ["1", "2", "3"] : ["1", "2", "3", "4"]
+    ).pluck());
     if(!_word) {
       return Q.reject({stack : "Could not find a word to push into X2 position, line B"});
     }
