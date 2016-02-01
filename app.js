@@ -227,10 +227,6 @@ function worddb(maxlength) {
   // Using the list of all rhythmic patterns supplied, find a rhyming pattern for each.
   this.getAllRhymes = function(patterns) {
     try {
-      console.log(Object.keys(rhymecache).map(function(key) {
-        return key + ": " + rhymecache[key].filter(function(k) { return !k.used; }).map(function(k) { return k.word}).join(", ");
-      }).join("\n"));
-
       return Object.keys(rhymecache).reduce(function(current, rhymekey) {
 
         var rhymewords = rhymecache[rhymekey];
@@ -368,7 +364,7 @@ function worddb(maxlength) {
       collection = db.collection(config.mongodb_collection);
       del_dfd = Q.nfcall(
         collection.deleteMany.bind(collection),
-        { timestamp : { "$lt" : Date.now - 30 * 24 * 60 * 60 * 1000 }});
+        { timestamp : { "$lt" : Date.now() - 30 * 24 * 60 * 60 * 1000 }});
       if(wordslist.length) {
         ins_dfd = Q.nfcall(
           collection.insertMany.bind(collection),
