@@ -300,6 +300,8 @@ function worddb(maxlength) {
         that.add(item);
       });
       return that;
+    }).catch(function(e) {
+      console.error(e);
     }).finally(function() {
       mongodb && mongodb.close();
     });
@@ -309,7 +311,7 @@ function worddb(maxlength) {
   //  a processed and indexed word.
   this.getNewTrends = function() {
     var that = this;
-    var url = "https://www.google.com/trends/hottrends/hotItems?ajax=1&pn=p1&htv=l";
+    var url = "https://trends.google.com/trends/hottrends/hotItems?ajax=1&pn=p1&htv=l";
     return Q.fcall(https.get, url).then(function(client) {
       var deferred = Q.defer();
       client.on("response", function(resp) {
@@ -330,6 +332,7 @@ function worddb(maxlength) {
             });
             deferred.resolve(that);
           } catch(e) {
+            console.error(body);
             console.error(e.stack);
             deferred.reject(e);
           }
